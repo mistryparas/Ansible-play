@@ -1,0 +1,23 @@
+---
+# tasks file for kubernets
+#
+#
+- name: "Disable SELinux"
+  selinux:
+    state: disabled
+
+- name: "set hostname of master node"
+  hostname:
+    name: master.example.com
+
+- name: "update the system"
+  yum:
+    name: "*"
+    state: latest
+
+- name: "stop firewalld for kubernetes"
+  service:
+    name: firewalld
+    state: stopped 
+    enabled: false
+  

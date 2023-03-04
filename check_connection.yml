@@ -1,0 +1,6 @@
+---
+- name: "this playbook for checking the connectivity of ansible machine"
+  hosts: all
+  tasks:
+    - name: "checking network connectivity from ping command"
+      ping:

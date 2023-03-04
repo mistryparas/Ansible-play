@@ -1,0 +1,5 @@
+---
+- name: "installation kuberenest on fresh machine"
+  hosts: master
+  roles: 
+    - kubernets

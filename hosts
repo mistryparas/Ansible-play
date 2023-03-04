@@ -1,0 +1,6 @@
+[master]
+master.example.com	ansible_python_interpreter=python2.7	
+
+[worker]
+node1.example.com		ansible_python_interpreter=python2.7
+
