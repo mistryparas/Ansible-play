@@ -1,0 +1,153 @@
+---
+# tasks file for kubernets
+- name: "Disable SELinux"
+  selinux:
+    state: disabled
+
+- name: "set hostname of master node"
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: "update the /etc/hosts file"
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+
+- name: "installation of required rpm in cluster"
+  yum:
+    name: "{{ yum_packages }}"
+    state: present
+
+- name: "update the system"
+  yum:
+    name: "*"
+    state: latest
+
+- name: "stop firewalld for kubernetes"
+  service:
+    name: firewalld
+    state: stopped 
+    enabled: false
+
+- name: "disable the swap partition"
+  command: "sed -e '/swap/ s/^#*/#/g' -i /etc/fstab"
+
+- name: "Copy kubernetes.conf file to kubernetes"
+  copy:
+    src: kubernetes.conf
+    dest: /etc/sysctl.d/kubernetes.conf
+
+- name: "update sysctl configration"
+  command: "sysctl --system"
+
+- name: "copy docker-ce.repo file"
+  copy:
+    src: docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+
+- name: "copy kubernetes.repo file"
+  copy:
+    src: kubernetes.repo
+    dest: /etc/yum.repos.d/kubernetes.repo
+
+- name: "reboot the system"
+  reboot:
+
+- name: "installation of docker-ce packages"
+  yum:
+    name: "{{ yum_docker }}"
+    state: present
+
+- name: "start docker service"
+  service:
+    name: docker
+    state: started 
+    enabled: true
+
+- name: "installation of kubernetes packages"
+  yum:
+    name: "{{ yum_kubernetes }}"
+    state: present
+
+- name: "start kubelet service"
+  service:
+    name: kubelet
+    state: started 
+    enabled: true
+
+- name: "remove config.toml file"
+  file:
+    path: /etc/containerd/config.toml
+    state: absent
+
+- name: "restart containerd service"
+  service:
+    name: containerd
+    state: restarted
+
+- name: "Setup kubernetes cluster"
+  command: "kubeadm init"
+  register: token
+  when: "'master' in group_names"  
+
+- name: "save the token in /tmp/token file."
+  copy:
+    content: "{{ token.stdout }}"
+    dest: /tmp/token.txt
+  when: "'master' in group_names"  
+
+- name: command
+  shell: "tail -n2 /tmp/token.txt > /tmp/k8s_token.txt"
+  when: "'master' in group_names"  
+
+- name: "getting token"
+  fetch:
+    src: /tmp/k8s_token.txt
+    dest: /tmp
+  when: "'master' in group_names"  
+
+- name: Create .kube file 
+  become: no
+  file: 
+    path: .kube
+    state: directory
+    owner: admin
+    group: admin
+  when: "'master' in group_names"  
+
+- name: "copy admin.config file for user"
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/admin/.kube/config
+    owner: admin
+    group: admin
+    remote_src: yes
+  when: "'master' in group_names"  
+
+- name: "copy calico.yaml file in master"
+  copy:
+    src: calico.yaml
+    dest: /tmp/calico.yaml
+  when: "'master' in group_names"  
+
+- name: "Setup calico network from kubectl command"
+  become: no
+  command: "kubectl create -f /tmp/calico.yaml"
+  when: "'master' in group_names"  
+
+- name: "Copy init command in worker node"
+  copy:
+    src: /tmp/master.example.com/tmp/k8s_token.txt
+    dest: /tmp/k8s_token.sh
+  when: "'worker' in group_names"  
+
+- name: "Join the command from shell scripts"
+  shell: "sh /tmp/k8s_token.sh"
+  when: "'worker' in group_names"  
+
+
+      
+ 
+
+
+
