@@ -1,0 +1,19 @@
+---
+# vars file for kubernets
+#
+yum_packages:
+  - wget
+  - git
+  - nfs-utils
+  - vim 
+  - epel-release
+
+yum_docker:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+
+yum_kubernetes:
+  - kubelet
+  - kubeadm
+  - kubectl
