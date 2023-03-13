@@ -1,8 +1,7 @@
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 
-192.168.0.60	master.example.com	master
-192.168.0.61	node1.example.com	node1
-192.168.0.62	node2.example.com	node2
-
-
+{% for i in groups['all'] %}
+{{ hostvars[i].ansible_default_ipv4.address }} {{ hostvars[i].ansible_fqdn }} {{
+hostvars[i].ansible_hostname }}
+{% endfor %}
