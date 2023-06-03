@@ -111,16 +111,16 @@
   file: 
     path: .kube
     state: directory
-    owner: admin
-    group: admin
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
   when: "'master' in group_names"  
 
 - name: "copy admin.config file for user"
   copy:
     src: /etc/kubernetes/admin.conf
-    dest: /home/admin/.kube/config
-    owner: admin
-    group: admin
+    dest: "/home/{{ ansible_ssh_user }}/.kube/config"
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
     remote_src: yes
   when: "'master' in group_names"  
 
@@ -143,11 +143,4 @@
 
 - name: "Join the command from shell scripts"
   shell: "sh /tmp/k8s_token.sh"
-  when: "'worker' in group_names"  
-
-
-      
- 
-
-
-
+  when: "'worker' in group_names" 
